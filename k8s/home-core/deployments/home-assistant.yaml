@@ -1,0 +1,55 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: home-assistant-config
+  namespace: home-core
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: home-assistant
+  namespace: home-core
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: home-assistant
+  template:
+    metadata:
+      labels:
+        app: home-assistant
+    spec:
+      containers:
+      - name: home-assistant
+        image: homeassistant/home-assistant:stable
+        ports:
+        - containerPort: 8123
+        volumeMounts:
+        - mountPath: /config
+          name: config
+      volumes:
+      - name: config
+        persistentVolumeClaim:
+          claimName: home-assistant-config
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: home-assistant-service
+  namespace: home-core
+spec:
+  selector:
+    app: home-assistant
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8123
+  type: LoadBalancer
