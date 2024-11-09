@@ -1,7 +1,6 @@
 # Paths to configuration files specific to home-core
 K8S_DIR = k8s
-HOME_CORE_DIR = $(K8S_DIR)/home-core/deployments
-NAMESPACE_FILE = $(K8S_DIR)/namespaces/home-core.yaml
+HOME_CORE_DIR = $(K8S_DIR)/home-core
 
 # Define the Kubernetes namespace
 NAMESPACE = home-core
@@ -9,14 +8,12 @@ NAMESPACE = home-core
 # Create the home-core namespace and all resources
 .PHONY: create
 create:
-	kubectl apply -f $(NAMESPACE_FILE)
-	kubectl apply -f $(HOME_CORE_DIR)
+	kubectl apply -R -f $(HOME_CORE_DIR)
 
 # Teardown the home-core namespace and all resources
 .PHONY: delete
 delete:
-	kubectl delete -f $(HOME_CORE_DIR)
-	kubectl delete -f $(NAMESPACE_FILE)
+	kubectl delete -R -f $(HOME_CORE_DIR)
 
 # Check the status of the home-core namespace resources
 .PHONY: status
