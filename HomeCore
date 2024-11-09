@@ -1,0 +1,32 @@
+# Paths to configuration files specific to home-core
+K8S_DIR = k8s
+HOME_CORE_DIR = $(K8S_DIR)/home-core/deployments
+NAMESPACE_FILE = $(K8S_DIR)/namespaces/home-core.yaml
+
+# Define the Kubernetes namespace
+NAMESPACE = home-core
+
+# Create the home-core namespace and all resources
+.PHONY: create
+create:
+	kubectl apply -f $(NAMESPACE_FILE)
+	kubectl apply -f $(HOME_CORE_DIR)
+
+# Teardown the home-core namespace and all resources
+.PHONY: delete
+delete:
+	kubectl delete -f $(HOME_CORE_DIR)
+	kubectl delete -f $(NAMESPACE_FILE)
+
+# Check the status of the home-core namespace resources
+.PHONY: status
+status:
+	kubectl get all -n $(NAMESPACE)
+
+# Check logs for the Home Assistant pod in home-core namespace
+.PHONY: logs
+logs:
+	@echo "Fetching logs for Home Assistant pod in $(NAMESPACE) namespace..."
+	@POD_NAME=$$(kubectl get pods -n $(NAMESPACE) -l app=home-assistant -o jsonpath="{.items[0].metadata.name}"); \
+	kubectl logs -n $(NAMESPACE) $$POD_NAME
+
