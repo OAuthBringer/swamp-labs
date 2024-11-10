@@ -50,6 +50,7 @@ spec:
     app: home-assistant
   ports:
     - protocol: TCP
-      port: 80
-      targetPort: 8123
-  type: LoadBalancer
+      port: 80             # Expose on port 80 for the Ingress to access
+      targetPort: 8123     # Map to the container’s 8123 port
+      nodePort: 32000
+  type: NodePort
