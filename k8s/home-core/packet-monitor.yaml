@@ -1,0 +1,29 @@
+# Suricata Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: suricata
+  namespace: home-core
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: suricata
+  template:
+    metadata:
+      labels:
+        app: suricata
+    spec:
+      containers:
+        - name: suricata
+          image: jasonish/suricata:latest  # An official Suricata Docker image
+          securityContext:
+            capabilities:
+              add:
+                - NET_ADMIN
+          args:
+            - "-i"
+            - "eth0"  # Monitor the primary interface, adjust as needed
+          ports:
+            - containerPort: 5000
+

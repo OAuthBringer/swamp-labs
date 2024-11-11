@@ -1,0 +1,50 @@
+# Deployment configuration
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ultralytics
+  namespace: home-core
+  labels:
+    app: ultralytics
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ultralytics
+  template:
+    metadata:
+      labels:
+        app: ultralytics
+    spec:
+      containers:
+        - name: ultralytics
+          image: ultralytics/ultralytics:latest-arm64
+          ports:
+            - containerPort: 80
+          resources:
+            requests:
+              cpu: "250m"
+              memory: "512Mi"
+            limits:
+              cpu: "500m"
+              memory: "1Gi"
+
+---
+
+# Service configuration
+apiVersion: v1
+kind: Service
+metadata:
+  name: ultralytics
+  namespace: home-core
+  labels:
+    app: ultralytics
+spec:
+  type: NodePort
+  ports:
+    - port: 80
+      targetPort: 80
+      nodePort: 31001  # Adjust this if needed
+  selector:
+    app: ultralytics
+
