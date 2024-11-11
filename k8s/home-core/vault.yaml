@@ -1,0 +1,116 @@
+# Vault Deployment
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: vault
+  namespace: home-core
+spec:
+  serviceName: vault
+  replicas: 1
+  selector:
+    matchLabels:
+      app: vault
+  template:
+    metadata:
+      labels:
+        app: vault
+    spec:
+      containers:
+        - name: vault
+          image: hashicorp/vault:latest
+          ports:
+            - containerPort: 8200
+          env:
+            - name: VAULT_DEV_ROOT_TOKEN_ID
+              value: "root"
+            - name: VAULT_ADDR
+              value: "http://127.0.0.1:8200"
+
+---
+
+# Vault NodePort Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: vault
+  namespace: home-core
+spec:
+  type: NodePort
+  ports:
+    - port: 8200
+      targetPort: 8200
+      nodePort: 32001  # Specify a port here that is available on your nodes
+  selector:
+    app: vault
+
+---
+# Kubernetes Authentication Configuration in Vault
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: vault-k8s-auth-config
+  namespace: home-core
+data:
+  config.hcl: |
+    path "auth/kubernetes/config" {
+      capabilities = ["create", "update"]
+    }
+
+    path "auth/kubernetes/role/my-app-role" {
+      capabilities = ["create", "update"]
+    }
+
+---
+
+# Vault Policy for Accessing Secrets
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: vault-policy
+  namespace: home-core
+data:
+  my-app-policy.hcl: |
+    path "secret/data/my-app/*" {
+      capabilities = ["read"]
+    }
+
+---
+
+# Service Account for Application Pod
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: my-app-sa
+  namespace: home-core
+
+---
+
+# Role Binding for Vault Access (Optional if you use RBAC)
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: vault-access-role
+  namespace: home-core
+rules:
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["get"]
+
+---
+
+## Application Pod with Vault Agent Injector Annotations
+#apiVersion: v1
+#kind: Pod
+#metadata:
+#  name: my-app
+#  namespace: home-core
+#  annotations:
+#    vault.hashicorp.com/agent-inject: "true"
+#    vault.hashicorp.com/role: "my-app-role"
+#    vault.hashicorp.com/agent-inject-secret-config: "secret/data/my-app/config"
+#spec:
+#  serviceAccountName: my-app-sa
+#  containers:
+#    - name: my-app
+#      image: my-app-image
+#

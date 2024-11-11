@@ -8,6 +8,7 @@ services:
     ports:
       - "6443:6443"  # Kubernetes API port
       - "8089:32000"  # Map 80 to 32000 (home assistant node port)
+      - "8090:32001"  # Map 80 to 32000 (home assistant node port)
 
     volumes:
       - k3s-server-data:/var/lib/rancher/k3s
